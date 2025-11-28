@@ -6,6 +6,10 @@
       "use": "@vercel/node"
     },
     {
+      "src": "index.js",
+      "use": "@vercel/node"
+    },
+    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
@@ -15,7 +19,15 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
+      "src": "/api/students/(.*)",
+      "dest": "/server.js"
+    },
+    {
+      "src": "/api/activities/(.*)",
+      "dest": "/index.js"
+    },
+    {
+      "src": "/api/send-email",
       "dest": "/server.js"
     },
     {
@@ -25,7 +37,12 @@
   ],
   "functions": {
     "server.js": {
-      "maxDuration": 30
+      "maxDuration": 30,
+      "runtime": "nodejs24.x"
+    },
+    "index.js": {
+      "maxDuration": 10,
+      "runtime": "nodejs24.x"
     }
   }
 }

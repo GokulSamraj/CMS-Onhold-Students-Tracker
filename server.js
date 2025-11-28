@@ -220,7 +220,12 @@ app.post('/api/send-email', async (req, res) => {
     }
 });
 
-// --- SERVER START ---
-app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-});
+// --- SERVER START (for local development) ---
+if (process.env.NODE_ENV !== 'production') {
+    app.listen(PORT, () => {
+        console.log(`🚀 Server running on port ${PORT}`);
+    });
+}
+
+// Export for Vercel serverless functions
+export default app;
