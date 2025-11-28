@@ -1,0 +1,5 @@
+{
+  "name": "CMS On-Hold Students Tracker",
+  "description": "An application to track and manage the list of on-hold students for CMS, with AI-powered features to assist with data entry and analysis.",
+  "requestFramePermissions": []
+}
