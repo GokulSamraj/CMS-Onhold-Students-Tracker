@@ -25,9 +25,46 @@ if (!MONGO_URI) {
 }
 
 // --- MONGODB CONNECTION ---
-mongoose.connect(MONGO_URI)
-    .then(() => console.log('✅ Connected to MongoDB Atlas'))
-    .catch(err => console.error('❌ MongoDB Connection Error:', err));
+// Improved connection handling for serverless environments
+let cached = global.mongo;
+
+if (!cached) {
+    cached = global.mongo = { conn: null, promise: null };
+}
+
+async function connectToDatabase() {
+    if (cached.conn) {
+        return cached.conn;
+    }
+
+    if (!cached.promise) {
+        const opts = {
+            bufferCommands: false,
+            maxPoolSize: 10,
+            serverSelectionTimeoutMS: 5000,
+            socketTimeoutMS: 45000,
+        };
+
+        cached.promise = mongoose.connect(MONGO_URI, opts)
+            .then(mongoose => {
+                console.log('✅ Connected to MongoDB Atlas');
+                return mongoose;
+            })
+            .catch(err => {
+                console.error('❌ MongoDB Connection Error:', err);
+                cached.promise = null;
+                throw err;
+            });
+    }
+
+    cached.conn = await cached.promise;
+    return cached.conn;
+}
+
+// Connect to database
+connectToDatabase().catch(err => {
+    console.error('Failed to initialize database connection:', err);
+});
 
 // --- SCHEMAS ---
 const studentSchema = new mongoose.Schema({
