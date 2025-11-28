@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "index.js",
+      "src": "server.js",
       "use": "@vercel/node"
     },
     {
@@ -16,20 +16,16 @@
   "routes": [
     {
       "src": "/api/(.*)",
-      "dest": "/index.js"
+      "dest": "/server.js"
     },
     {
       "src": "/(.*)",
       "dest": "/dist/$1"
     }
   ],
-  "env": {
-    "NODE_ENV": "production"
-  },
   "functions": {
-    "index.js": {
-      "maxDuration": 30,
-      "runtime": "nodejs24.x"
+    "server.js": {
+      "maxDuration": 30
     }
   }
 }
