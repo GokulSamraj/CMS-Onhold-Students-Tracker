@@ -139,7 +139,9 @@ const App = () => {
       if (isAdmin) {
           return students;
       }
-      return students.filter(s => s.createdByEmail === user);
+      const currentUserInitiator = initiators.find(i => i.email.toLowerCase() === user.toLowerCase());
+      const currentUserName = currentUserInitiator ? currentUserInitiator.name : '';
+      return students.filter(s => s.createdByEmail === user || s.initiatedBy === currentUserName);
   }, [students, user, isAdmin]);
 
   // --- Actions ---
