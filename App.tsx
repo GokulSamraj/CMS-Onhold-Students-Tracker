@@ -348,65 +348,6 @@ const App = () => {
     setIsSendingEmail(false);
   };
 
-  // --- Scheduler Hook (Client Side, triggers Server Side actions) ---
-  useEffect(() => {
-      const interval = setInterval(() => {
-          if (!isAdmin) return;
-          
-          const now = new Date();
-          const todayStr = now.toISOString().split('T')[0];
-          
-          const hour = now.getHours();
-          const minutes = now.getMinutes();
-          
-          const isTenAMTrigger = hour === 10 && minutes >= 0 && minutes < 5;
-          const isOnePMTrigger = hour === 13 && minutes >= 0 && minutes < 5;
-          const isFourPMTrigger = hour === 16 && minutes >= 0 && minutes < 5;
-          const isSixPMTrigger = hour === 18 && minutes >= 0 && minutes < 5;
-          const isEightPMTrigger = hour === 20 && minutes >= 0 && minutes < 5;
-
-          const pendingStudents = students.filter(s => !s.stopReminders && (s.status === Status.ON_HOLD || s.status === Status.PENDING));
-
-          if (isTenAMTrigger) {
-              const batch = pendingStudents.filter(s => s.reminderDate === todayStr);
-              if (batch.length > 0) {
-                  handleSendManualReminders(batch, '10:00 AM Reminder');
-              }
-          }
-
-          if (isOnePMTrigger) {
-               const batch = pendingStudents.filter(s => s.reminderDate === todayStr);
-               if (batch.length > 0) {
-                   handleSendManualReminders(batch, '1:00 PM Reminder');
-               }
-          }
-
-          if (isFourPMTrigger) {
-               const batch = pendingStudents.filter(s => s.reminderDate === todayStr);
-               if (batch.length > 0) {
-                   handleSendManualReminders(batch, '4:00 PM Reminder');
-               }
-          }
-
-          if (isSixPMTrigger) {
-               const batch = pendingStudents.filter(s => s.reminderDate === todayStr);
-               if (batch.length > 0) {
-                   handleSendManualReminders(batch, '6:00 PM Reminder');
-               }
-          }
-
-          if (isEightPMTrigger) {
-                const batch = pendingStudents.filter(s => s.reminderDate === todayStr);
-                if (batch.length > 0) {
-                    handleSendManualReminders(batch, '8:00 PM Reminder');
-                }
-          }
-
-      }, 60000);
-
-      return () => clearInterval(interval);
-  }, [students, isAdmin]);
-
   // --- Render Logic ---
 
   if (!user) {

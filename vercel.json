@@ -27,5 +27,12 @@
       "src": "/(.*)",
       "dest": "/dist/index.html"
     }
+  ],
+  "crons": [
+    { "path": "/api/cron/send-reminders", "schedule": "30 4 * * *" },
+    { "path": "/api/cron/send-reminders", "schedule": "30 7 * * *" },
+    { "path": "/api/cron/send-reminders", "schedule": "30 10 * * *" },
+    { "path": "/api/cron/send-reminders", "schedule": "30 12 * * *" },
+    { "path": "/api/cron/send-reminders", "schedule": "30 14 * * *" }
   ]
 }
