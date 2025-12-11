@@ -345,12 +345,13 @@ app.get('/api/cron/send-reminders', async (req, res) => {
             try {
                 const mailOptions = {
                     from: `"CMS Tracker" <${EMAIL_USER}>`,
-                    to: "gokul_s@lmes.in", // Hardcoded email
+                    to: agentName,
                     subject: subject,
                     html: emailBody,
                 };
-                await transporter.sendMail(mailOptions);
-                console.log(`CRON: Email sent for agent: ${agentName}`);
+                console.log(`CRON: Preparing to send email with options:`, mailOptions);
+                const info = await transporter.sendMail(mailOptions);
+                console.log(`CRON: Email sent for agent: ${agentName}. Message ID: ${info.messageId}`);
                 sentCount++;
             } catch (err) {
                 console.error(`CRON: Failed to send email for agent ${agentName}:`, err.message);
