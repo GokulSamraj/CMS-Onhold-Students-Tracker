@@ -281,9 +281,29 @@ const logActivity = async (action, details, user = 'SYSTEM') => {
     }
 };
 
+// --- EMAIL RETRY MECHANISM ---
+const sendEmailWithRetry = async (mailOptions, maxRetries = 3) => {
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const info = await transporter.sendMail(mailOptions);
+            console.log(`CRON: Email sent on attempt ${attempt} to ${mailOptions.to}`);
+            return { success: true, info };
+        } catch (error) {
+            console.error(`CRON: Email attempt ${attempt} failed for ${mailOptions.to}:`, error.message);
+            if (attempt === maxRetries) {
+                return { success: false, error: error.message };
+            }
+            // Exponential backoff: 1s, 2s, 4s
+            await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt - 1) * 1000));
+        }
+    }
+};
+
 // --- CRON JOB ENDPOINT ---
 app.get('/api/cron/send-reminders', async (req, res) => {
     console.log('CRON /api/cron/send-reminders');
+    console.log(`CRON: Job started at ${new Date().toISOString()} (UTC: ${new Date().toUTCString()})`);
+    console.log(`CRON: Local timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
 
     // 1. Authenticate Cron Job
     const authHeader = req.headers.authorization;
@@ -301,6 +321,16 @@ app.get('/api/cron/send-reminders', async (req, res) => {
         const today = new Date();
         today.setHours(0, 0, 0, 0); // Set to beginning of the day for date comparison
         const todayStr = today.toISOString().split('T')[0];
+
+        // Enhanced timezone logging for debugging
+        console.log(`CRON: Today's date filtering: ${todayStr}`);
+        console.log(`CRON: Local time: ${new Date().toLocaleString()}`);
+        console.log(`CRON: UTC time: ${new Date().toUTCString()}`);
+        console.log(`CRON: Server timezone: ${Intl.DateTimeFormat().resolvedOptions().timeZone}`);
+        console.log(`CRON: Date comparison details:
+  - Local midnight: ${today.toLocaleDateString()}
+  - ISO string: ${today.toISOString()}
+  - Filter string: ${todayStr}`);
 
         // Status enum values from types.ts
         const ON_HOLD = 'On-Hold';
@@ -342,19 +372,22 @@ app.get('/api/cron/send-reminders', async (req, res) => {
             const emailBody = generateEmailTable(agentTasks, new Date().toDateString(), agentName);
             const subject = `[Reminder] Automated Follow-up for ${agentTasks.length} students`;
 
-            try {
-                const mailOptions = {
-                    from: `"CMS Tracker" <${EMAIL_USER}>`,
-                    to: agentName,
-                    subject: subject,
-                    html: emailBody,
-                };
-                console.log(`CRON: Preparing to send email with options:`, mailOptions);
-                const info = await transporter.sendMail(mailOptions);
-                console.log(`CRON: Email sent for agent: ${agentName}. Message ID: ${info.messageId}`);
+            // Standardize routing to operations team with agent context in subject
+            const mailOptions = {
+                from: `"CMS Tracker" <${EMAIL_USER}>`,
+                to: "gokul_s@lmes.in", // Route all reminders to operations team
+                subject: `[${agentName}] ${subject}`, // Include agent name in subject for context
+                html: emailBody,
+            };
+
+            console.log(`CRON: Sending email for agent ${agentName} (${agentTasks.length} students) to operations team`);
+
+            const result = await sendEmailWithRetry(mailOptions);
+            if (result.success) {
+                console.log(`CRON: Email sent successfully for agent ${agentName}. Message ID: ${result.info.messageId}`);
                 sentCount++;
-            } catch (err) {
-                console.error(`CRON: Failed to send email for agent ${agentName}:`, err.message);
+            } else {
+                console.error(`CRON: All retries failed for agent ${agentName}: ${result.error}`);
                 failedCount++;
             }
         }

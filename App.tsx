@@ -321,7 +321,7 @@ const App = () => {
         const agentTasks = tasksByAgent[agentName];
         
         const emailBody = generateEmailTable(agentTasks, new Date().toDateString(), agentName);
-        const subject = `[Reminder] ${autoLabel || 'Action Required'} - Follow-ups for ${agentTasks.length} students`;
+        const subject = `[${agentName}] [Reminder] ${autoLabel || 'Action Required'} - Follow-ups for ${agentTasks.length} students`;
 
         try {
             await sendEmailViaBackend("gokul_s@lmes.in", subject, emailBody);
